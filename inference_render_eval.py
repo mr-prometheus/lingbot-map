@@ -295,10 +295,10 @@ def process_clip(model, clip_dir: Path, clip_out_dir: Path,
         return False, 0
 
     if not force and is_clip_done(clip_out_dir):
-        print(f"  [SKIP] {clip_dir.name} — renders already exist")
+        print(f"  [SKIP] {clip_dir.name} - renders already exist")
         return True, 0
 
-    print(f"  {len(image_files)} frames — running inference...")
+    print(f"  {len(image_files)} frames - running inference...")
     preds = run_inference(model, image_files, device, dtype, num_scale_frames)
 
     clip_out_dir.mkdir(parents=True, exist_ok=True)
