@@ -259,6 +259,10 @@ def run_inference(model, image_paths, device, dtype, num_scale_frames=8):
     extrinsic, intrinsic = pose_encoding_to_extri_intri(
         preds["pose_enc"], images.shape[-2:]
     )
+    if extrinsic.dim() == 4:
+        extrinsic = extrinsic.squeeze(0)
+    if intrinsic.dim() == 4:
+        intrinsic = intrinsic.squeeze(0)
     S = extrinsic.shape[0]
     ext_4x4 = torch.zeros(S, 4, 4, device=extrinsic.device, dtype=extrinsic.dtype)
     ext_4x4[:, :3, :4] = extrinsic
