@@ -42,9 +42,12 @@ def write_ply(path, points, colors):
 
 def extract_point_cloud(preds, conf_threshold):
     """Flatten world_points filtered by confidence."""
-    pts   = preds["world_points"]    # [S, H, W, 3]
-    conf  = preds["world_points_conf"]  # [S, H, W]
-    imgs  = preds["images"]          # [S, H, W, 3]  0-1 float
+    pts   = preds["world_points"]      # [S, H, W, 3]
+    conf  = preds["world_points_conf"] # [S, H, W]
+    imgs  = preds["images"]            # [S, 3, H, W] or [S, H, W, 3]
+
+    if imgs.ndim == 4 and imgs.shape[1] == 3:
+        imgs = imgs.transpose(0, 2, 3, 1)  # -> [S, H, W, 3]
 
     mask = conf > conf_threshold
     pts_flat  = pts[mask]
