@@ -5,7 +5,7 @@
 #SBATCH --output=runs/infer_%j.out
 
 # ==== CONFIGURATION ====
-VIDEO_PATH=""  # <-- set this to your video path
+VIDEO_PATH="videos/venice.mp4"  # <-- set this to your video path
 OUTPUT_DIR="results"
 MODEL_PATH="/home/de575594/Deepan/CV/geolocalization/lingbot-map/checkpoints/lingbot-map-long.pt"
 FPS=10
