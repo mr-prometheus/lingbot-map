@@ -9,7 +9,7 @@ VIDEO_PATH="videos/venice.mp4"  # <-- set this to your video path
 OUTPUT_DIR="results"
 MODEL_PATH="/home/de575594/Deepan/CV/geolocalization/lingbot-map/checkpoints/lingbot-map-long.pt"
 FPS=10
-CONF_THRESHOLD=1.5
+CONF_THRESHOLD=0.5
 NUM_SCALE_FRAMES=8
 # =======================
 

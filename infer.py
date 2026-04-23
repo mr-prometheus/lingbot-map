@@ -47,7 +47,7 @@ def main():
 
     parser.add_argument("--model_path",       type=str, required=True)
     parser.add_argument("--num_scale_frames", type=int,   default=8)
-    parser.add_argument("--conf_threshold",   type=float, default=1.5)
+    parser.add_argument("--conf_threshold",   type=float, default=0.5)
     parser.add_argument("--use_sdpa",         action="store_true", default=False)
     parser.add_argument("--output_dir",       type=str, default="results")
 
