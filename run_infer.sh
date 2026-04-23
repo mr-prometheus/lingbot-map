@@ -5,7 +5,7 @@
 #SBATCH --output=runs/infer_%j.out
 
 # ==== CONFIGURATION ====
-VIDEO_PATH="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/your_video.mp4"
+VIDEO_PATH=""  # <-- set this to your video path
 OUTPUT_DIR="results"
 MODEL_PATH="/home/de575594/Deepan/CV/geolocalization/lingbot-map/checkpoints/lingbot-map-long.pt"
 FPS=10
@@ -17,9 +17,14 @@ export PATH="/home/de575594/.conda/envs/lingbot-map/bin:$PATH"
 eval "$(conda shell.bash hook)"
 module purge
 module load anaconda3
-module load cuda/12.8
+module load cuda/12.4 2>/dev/null || module load cuda/12.1 2>/dev/null || true
 
 conda activate lingbot-map
+
+if [ -z "$VIDEO_PATH" ]; then
+    echo "[ERROR] Set VIDEO_PATH in the script before submitting."
+    exit 1
+fi
 
 mkdir -p runs "$OUTPUT_DIR"
 
