@@ -8,10 +8,9 @@ Usage:
 
 import argparse
 import os
-import struct
 import time
 
-os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+os.environ.setdefault("PYTORCH_ALLOC_CONF", "expandable_segments:True")
 
 import numpy as np
 import torch
@@ -100,7 +99,7 @@ def main():
 
     # Load
     t0 = time.time()
-    images, paths, _ = load_images(
+    images, _, _ = load_images(
         image_folder=args.image_folder, video_path=args.video_path,
         fps=args.fps, first_k=args.first_k, stride=args.stride,
         image_size=args.image_size, patch_size=args.patch_size,

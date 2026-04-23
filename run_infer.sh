@@ -13,6 +13,7 @@ CONF_THRESHOLD=1.5
 NUM_SCALE_FRAMES=8
 # =======================
 
+export PYTORCH_ALLOC_CONF="expandable_segments:True"
 export PATH="/home/de575594/.conda/envs/lingbot-map/bin:$PATH"
 eval "$(conda shell.bash hook)"
 module purge
@@ -44,7 +45,8 @@ python infer.py \
     --output_dir       "$OUTPUT_DIR" \
     --fps              "$FPS" \
     --conf_threshold   "$CONF_THRESHOLD" \
-    --num_scale_frames "$NUM_SCALE_FRAMES"
+    --num_scale_frames "$NUM_SCALE_FRAMES" \
+    --use_sdpa
 
 status=$?
 
