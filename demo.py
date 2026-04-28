@@ -200,6 +200,31 @@ def _warm_streaming(model, images, scale_frames, warm_stream_n, dtype, passes=1)
 
 
 # =============================================================================
+# PLY export
+# =============================================================================
+
+def save_ply(path, points, colors):
+    """Write a colored point cloud to a binary-little-endian PLY file."""
+    n = len(points)
+    header = (
+        "ply\nformat binary_little_endian 1.0\n"
+        f"element vertex {n}\n"
+        "property float x\nproperty float y\nproperty float z\n"
+        "property uchar red\nproperty uchar green\nproperty uchar blue\n"
+        "end_header\n"
+    )
+    vertex = np.empty(n, dtype=[
+        ("x", "<f4"), ("y", "<f4"), ("z", "<f4"),
+        ("red", "u1"), ("green", "u1"), ("blue", "u1"),
+    ])
+    vertex["x"], vertex["y"], vertex["z"] = points[:, 0], points[:, 1], points[:, 2]
+    vertex["red"], vertex["green"], vertex["blue"] = colors[:, 0], colors[:, 1], colors[:, 2]
+    with open(path, "wb") as f:
+        f.write(header.encode())
+        f.write(vertex.tobytes())
+
+
+# =============================================================================
 # Post-processing
 # =============================================================================
 
@@ -340,6 +365,12 @@ def main():
     parser.add_argument("--window_size", type=int, default=64, help="Frames per window (windowed mode)")
     parser.add_argument("--overlap_size", type=int, default=16, help="Overlap between windows")
 
+
+    # PLY export
+    parser.add_argument("--save_ply", type=str, default=None,
+                        help="Save reconstructed point cloud to this .ply path after inference")
+    parser.add_argument("--no_vis", action="store_true", default=False,
+                        help="Skip the interactive viser viewer (useful for headless/batch runs)")
 
     # Visualization
     parser.add_argument("--port", type=int, default=8080)
@@ -497,24 +528,42 @@ def main():
 
     predictions, images_cpu = postprocess(predictions, images_for_post)
 
+    # ── Save PLY ─────────────────────────────────────────────────────────────
+    if args.save_ply:
+        world_points = predictions["world_points"]           # [S, H, W, 3]
+        confidences  = predictions["world_points_conf"]      # [S, H, W]
+        images_rgb   = images_cpu.permute(0, 2, 3, 1).numpy()  # [S, H, W, 3]
+
+        pts_flat  = world_points.reshape(-1, 3)
+        conf_flat = confidences.reshape(-1)
+        rgb_flat  = images_rgb.reshape(-1, 3)
+
+        mask   = conf_flat > args.conf_threshold
+        pts    = pts_flat[mask]
+        colors = (rgb_flat[mask] * 255).clip(0, 255).astype(np.uint8)
+
+        save_ply(args.save_ply, pts, colors)
+        print(f"Saved {len(pts):,} points → {args.save_ply}")
+
     # ── Visualize ────────────────────────────────────────────────────────────
-    try:
-        from lingbot_map.vis import PointCloudViewer
-        viewer = PointCloudViewer(
-            pred_dict=prepare_for_visualization(predictions, images_cpu),
-            port=args.port,
-            vis_threshold=args.conf_threshold,
-            downsample_factor=args.downsample_factor,
-            point_size=args.point_size,
-            mask_sky=args.mask_sky,
-            image_folder=resolved_image_folder,
-            sky_mask_dir=args.sky_mask_dir,
-            sky_mask_visualization_dir=args.sky_mask_visualization_dir,
-        )
-        print(f"3D viewer at http://localhost:{args.port}")
-        viewer.run()
-    except ImportError:
-        print("viser not installed. Install with: pip install lingbot-map[vis]")
+    if not args.no_vis:
+        try:
+            from lingbot_map.vis import PointCloudViewer
+            viewer = PointCloudViewer(
+                pred_dict=prepare_for_visualization(predictions, images_cpu),
+                port=args.port,
+                vis_threshold=args.conf_threshold,
+                downsample_factor=args.downsample_factor,
+                point_size=args.point_size,
+                mask_sky=args.mask_sky,
+                image_folder=resolved_image_folder,
+                sky_mask_dir=args.sky_mask_dir,
+                sky_mask_visualization_dir=args.sky_mask_visualization_dir,
+            )
+            print(f"3D viewer at http://localhost:{args.port}")
+            viewer.run()
+        except ImportError:
+            print("viser not installed. Install with: pip install lingbot-map[vis]")
         print(f"Predictions contain keys: {list(predictions.keys())}")
 
 
